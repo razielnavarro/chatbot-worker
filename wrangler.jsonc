@@ -15,7 +15,8 @@
 		{
 			"binding": "DB",
 			"database_name": "chatbot-d1",
-			"database_id": "2f9cffd5-54a2-49ec-99ad-8a2910bec11d"
+			"database_id": "2f9cffd5-54a2-49ec-99ad-8a2910bec11d",
+			"migrations_dir": "drizzle/migrations"
 		}
 	]
 }
