@@ -7,6 +7,12 @@ declare namespace Cloudflare {
 }
 interface Env extends Cloudflare.Env {}
 
+interface CloudflareBindings {
+    DB: D1Database;
+    API_KEY: string;
+    JWT_SECRET: string;
+}
+
 // Begin runtime types
 /*! *****************************************************************************
 Copyright (c) Cloudflare. All rights reserved.
