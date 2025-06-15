@@ -13,17 +13,19 @@
 		"db:migrate": "wrangler d1 migrations apply logs-info"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.8.19",
+		"@cloudflare/workers-types": "^4.20240208.0",
+		"@types/node": "^20.11.19",
 		"drizzle-kit": "^0.31.1",
 		"tsx": "^4.19.4",
-		"typescript": "^5.5.2",
-		"vitest": "~3.0.7",
-		"wrangler": "^4.18.0"
+		"typescript": "^5.3.3",
+		"vitest": "^1.2.2",
+		"wrangler": "^3.28.1"
 	},
 	"dependencies": {
+		"@hono/zod-validator": "^0.1.11",
 		"dotenv": "^16.5.0",
-		"drizzle-orm": "^0.44.1",
-		"hono": "^4.7.11",
-		"zod": "^3.25.49"
+		"drizzle-orm": "^0.29.3",
+		"hono": "^3.12.8",
+		"zod": "^3.22.4"
 	}
 }

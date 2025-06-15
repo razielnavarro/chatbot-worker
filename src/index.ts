@@ -1,18 +1,39 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
+import { prettyJSON } from 'hono/pretty-json';
+import { getDb } from './db';
+import { ordersController } from './controllers/orders.controller';
+import { menuController } from './controllers/menu.controller';
+import { locationsController } from './controllers/locations.controller';
+import { customersController } from './controllers/customers.controller';
+import { whatsappController } from './controllers/whatsapp.controller';
 
-export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
-	},
-} satisfies ExportedHandler<Env>;
+type Variables = {
+	db: ReturnType<typeof getDb>;
+};
+
+const app = new Hono<{ Variables: Variables; Bindings: { DB: D1Database } }>();
+
+// Middleware
+app.use('*', logger());
+app.use('*', prettyJSON());
+app.use('*', cors());
+
+// Database middleware
+app.use('*', async (c, next) => {
+	c.set('db', getDb(c.env.DB));
+	await next();
+});
+
+// Routes
+app.route('/api/orders', ordersController);
+app.route('/api/menu', menuController);
+app.route('/api/locations', locationsController);
+app.route('/api/customers', customersController);
+app.route('/api/whatsapp', whatsappController);
+
+// Health check
+app.get('/health', (c) => c.json({ status: 'ok' }));
+
+export default app;
