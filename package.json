@@ -19,7 +19,7 @@
 		"tsx": "^4.19.4",
 		"typescript": "^5.3.3",
 		"vitest": "^1.2.2",
-		"wrangler": "^3.28.1"
+		"wrangler": "^4.20.0"
 	},
 	"dependencies": {
 		"@hono/zod-validator": "^0.1.11",
