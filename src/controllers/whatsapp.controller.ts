@@ -6,6 +6,7 @@ import { conversations } from '../entities/conversations.entity';
 import { customers } from '../entities/customers.entity';
 import { eq } from 'drizzle-orm';
 import { conversationStateSchema } from '../schemas/conversations.schema';
+import { createSession, getSessionByToken, updateSession } from './sessionController';
 
 type Variables = {
 	db: Database;
@@ -55,7 +56,7 @@ whatsappController.post('/webhook', zValidator('form', incomingMessageSchema), a
 	}
 
 	// Process message based on conversation state
-	const response = await processMessage(conversation.state, Body, db);
+	const response = await processMessage(conversation.state, Body, db, phoneNumber, conversation.temporaryData || undefined);
 
 	// Update conversation state and last message time
 	await db
@@ -75,80 +76,90 @@ whatsappController.post('/webhook', zValidator('form', incomingMessageSchema), a
 async function processMessage(
 	state: string,
 	message: string,
-	db: Database
+	db: Database,
+	phoneNumber: string,
+	conversationData?: string
 ): Promise<{
 	message: string;
 	newState: string;
 	temporaryData?: string;
 }> {
+	const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
 	switch (state) {
 		case 'greeting':
 			return {
-				message: 'Welcome! Would you like to place an order for delivery or pickup?',
+				message: '¡Bienvenido! ¿Desea delivery o pickup? (Responda con "delivery" o "pickup")',
 				newState: 'selecting_type',
 			};
 
 		case 'selecting_type':
 			const orderType = message.toLowerCase();
-			if (orderType === 'delivery' || orderType === 'pickup') {
+			if (orderType !== 'delivery' && orderType !== 'pickup') {
 				return {
-					message: orderType === 'delivery' ? 'Please provide your delivery address.' : 'Please select your preferred pickup location.',
-					newState: orderType === 'delivery' ? 'awaiting_address' : 'selecting_location',
-					temporaryData: JSON.stringify({ orderType }),
+					message: 'Por favor, responda con "delivery" o "pickup"',
+					newState: 'selecting_type',
 				};
 			}
-			return {
-				message: 'Please type "delivery" or "pickup".',
-				newState: 'selecting_type',
-			};
+
+			// Create a new session for this order
+			const session = await createSession(phoneNumber);
+			const menuLink = `${FRONTEND_URL}/menu?token=${session.token}`;
+
+			if (orderType === 'delivery') {
+				return {
+					message: `Por favor, envíe su dirección de entrega. Luego podrá ver nuestro menú aquí: ${menuLink}`,
+					newState: 'awaiting_address',
+					temporaryData: JSON.stringify({ orderType, sessionToken: session.token }),
+				};
+			} else {
+				return {
+					message: `Por favor, seleccione su ubicación para pickup. Puede ver nuestro menú aquí: ${menuLink}`,
+					newState: 'awaiting_address',
+					temporaryData: JSON.stringify({ orderType, sessionToken: session.token }),
+				};
+			}
 
 		case 'awaiting_address':
-			// TODO: Validate address and get coordinates
-			return {
-				message: 'Great! Now let\'s select your items. Type "menu" to see our menu.',
-				newState: 'selecting_items',
-				temporaryData: JSON.stringify({ address: message }),
-			};
+			try {
+				const tempData = JSON.parse(conversationData || '{}');
+				const { orderType, sessionToken } = tempData;
 
-		case 'selecting_location':
-			// TODO: Validate location selection
-			return {
-				message: 'Great! Now let\'s select your items. Type "menu" to see our menu.',
-				newState: 'selecting_items',
-				temporaryData: JSON.stringify({ location: message }),
-			};
+				// Update session with address
+				await updateSession(sessionToken, {
+					state: 'menu_sent',
+				});
+
+				return {
+					message: '¡Gracias! Puede comenzar a ordenar usando el enlace del menú que le enviamos anteriormente.',
+					newState: 'selecting_items',
+					temporaryData: JSON.stringify({ ...tempData, address: message }),
+				};
+			} catch (error) {
+				console.error('Error processing address:', error);
+				return {
+					message: 'Lo siento, hubo un error. Por favor, intente nuevamente.',
+					newState: 'awaiting_address',
+				};
+			}
 
 		case 'selecting_items':
-			if (message.toLowerCase() === 'menu') {
-				// TODO: Get menu items from database
-				return {
-					message: "Here's our menu:\n1. Item 1 - $10\n2. Item 2 - $15\n\nType the number to add to cart.",
-					newState: 'selecting_items',
-				};
-			}
-			// TODO: Handle item selection and cart management
+			// The actual order creation will happen through the frontend API
 			return {
-				message: 'Item added to cart. Type "done" when finished or "menu" to see more items.',
+				message: 'Por favor, use el enlace del menú para seleccionar sus items. Cuando termine, confirme su orden.',
 				newState: 'selecting_items',
 			};
 
-		case 'confirming_order':
-			if (message.toLowerCase() === 'confirm') {
-				// TODO: Create order in database
-				return {
-					message: "Order confirmed! We'll notify you when it's ready.",
-					newState: 'order_confirmed',
-				};
-			}
+		case 'order_confirmed':
 			return {
-				message: 'Please type "confirm" to place your order or "cancel" to start over.',
-				newState: 'confirming_order',
+				message: '¡Gracias por su orden! Nos pondremos en contacto pronto con los detalles de su pedido.',
+				newState: 'order_confirmed',
 			};
 
 		default:
 			return {
-				message: 'Welcome! Would you like to place an order for delivery or pickup?',
-				newState: 'selecting_type',
+				message: 'Lo siento, no entendí. ¿Podría repetir?',
+				newState: state,
 			};
 	}
 }

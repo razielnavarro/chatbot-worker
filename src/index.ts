@@ -8,6 +8,7 @@ import { menuController } from './controllers/menu.controller';
 import { locationsController } from './controllers/locations.controller';
 import { customersController } from './controllers/customers.controller';
 import { whatsappController } from './controllers/whatsapp.controller';
+import sessions from './routes/sessions';
 
 type Variables = {
 	db: ReturnType<typeof getDb>;
@@ -32,6 +33,7 @@ app.route('/api/menu', menuController);
 app.route('/api/locations', locationsController);
 app.route('/api/customers', customersController);
 app.route('/api/whatsapp', whatsappController);
+app.route('/api/sessions', sessions);
 
 // Health check
 app.get('/health', (c) => c.json({ status: 'ok' }));
