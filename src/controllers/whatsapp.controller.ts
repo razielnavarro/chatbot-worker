@@ -68,9 +68,7 @@ whatsappController.post('/webhook', zValidator('form', incomingMessageSchema), a
 		.where(eq(conversations.id, conversation.id));
 
 	// Send response back to WhatsApp
-	return c.json({
-		message: response.message,
-	});
+	return c.text(response.message);
 });
 
 // Helper function to process messages based on conversation state
