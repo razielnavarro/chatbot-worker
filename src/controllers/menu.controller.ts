@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
 import { menuItems, menuCategories } from '../entities/menu.entity';
 import { eq } from 'drizzle-orm';
 import { Database } from '../db';
+import { createCategorySchema, createMenuItemSchema, updateMenuItemSchema } from '../schemas/menu.schema';
 
 type Variables = {
 	db: Database;
@@ -12,12 +12,6 @@ type Variables = {
 const menuController = new Hono<{ Variables: Variables }>();
 
 // Create menu category
-const createCategorySchema = z.object({
-	name: z.string(),
-	description: z.string().optional(),
-	imageUrl: z.string().url().optional(),
-});
-
 menuController.post('/categories', zValidator('json', createCategorySchema), async (c) => {
 	const data = c.req.valid('json');
 	const db = c.get('db');
@@ -26,15 +20,6 @@ menuController.post('/categories', zValidator('json', createCategorySchema), asy
 });
 
 // Create menu item
-const createMenuItemSchema = z.object({
-	categoryId: z.number(),
-	name: z.string(),
-	description: z.string().optional(),
-	price: z.number().positive(),
-	imageUrl: z.string().url().optional(),
-	available: z.boolean().default(true),
-});
-
 menuController.post('/items', zValidator('json', createMenuItemSchema), async (c) => {
 	const data = c.req.valid('json');
 	const db = c.get('db');
@@ -105,15 +90,6 @@ menuController.get('/categories', async (c) => {
 });
 
 // Update menu item
-const updateMenuItemSchema = z.object({
-	categoryId: z.number().optional(),
-	name: z.string().optional(),
-	description: z.string().optional(),
-	price: z.number().positive().optional(),
-	imageUrl: z.string().url().optional(),
-	available: z.boolean().optional(),
-});
-
 menuController.patch('/items/:id', zValidator('json', updateMenuItemSchema), async (c) => {
 	const id = parseInt(c.req.param('id'));
 	const data = c.req.valid('json');

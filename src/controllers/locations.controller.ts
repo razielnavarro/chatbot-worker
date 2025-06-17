@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
 import { locations } from '../entities/locations.entity';
 import { eq } from 'drizzle-orm';
 import { Database } from '../db';
+import { createLocationSchema, updateLocationSchema } from '../schemas/locations.schema';
 
 type Variables = {
 	db: Database;
@@ -12,17 +12,6 @@ type Variables = {
 const locationsController = new Hono<{ Variables: Variables }>();
 
 // Create location
-const createLocationSchema = z.object({
-	name: z.string(),
-	address: z.string(),
-	latitude: z.number(),
-	longitude: z.number(),
-	cashierPhone: z.string(),
-	deliveryRadius: z.number().positive(),
-	minimumOrder: z.number().positive(),
-	estimatedDeliveryTime: z.number().int().positive(),
-});
-
 locationsController.post('/', zValidator('json', createLocationSchema), async (c) => {
 	const data = c.req.valid('json');
 	const db = c.get('db');
@@ -53,17 +42,6 @@ locationsController.get('/', async (c) => {
 });
 
 // Update location
-const updateLocationSchema = z.object({
-	name: z.string().optional(),
-	address: z.string().optional(),
-	latitude: z.number().optional(),
-	longitude: z.number().optional(),
-	cashierPhone: z.string().optional(),
-	deliveryRadius: z.number().positive().optional(),
-	minimumOrder: z.number().positive().optional(),
-	estimatedDeliveryTime: z.number().int().positive().optional(),
-});
-
 locationsController.patch('/:id', zValidator('json', updateLocationSchema), async (c) => {
 	const id = parseInt(c.req.param('id'));
 	const data = c.req.valid('json');

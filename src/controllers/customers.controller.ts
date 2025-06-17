@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
 import { customers } from '../entities/customers.entity';
 import { eq } from 'drizzle-orm';
 import { Database } from '../db';
+import { createCustomerSchema, updateCustomerSchema } from '../schemas/customers.schema';
 
 type Variables = {
 	db: Database;
@@ -12,11 +12,6 @@ type Variables = {
 const customersController = new Hono<{ Variables: Variables }>();
 
 // Create customer
-const createCustomerSchema = z.object({
-	phoneNumber: z.string(),
-	name: z.string().optional(),
-});
-
 customersController.post('/', zValidator('json', createCustomerSchema), async (c) => {
 	const data = c.req.valid('json');
 	const db = c.get('db');
@@ -62,11 +57,6 @@ customersController.get('/', async (c) => {
 });
 
 // Update customer
-const updateCustomerSchema = z.object({
-	name: z.string().optional(),
-	phoneNumber: z.string().optional(),
-});
-
 customersController.patch('/:id', zValidator('json', updateCustomerSchema), async (c) => {
 	const id = parseInt(c.req.param('id'));
 	const data = c.req.valid('json');

@@ -31,3 +31,9 @@ export const conversationResponseSchema = z.object({
 	lastMessageAt: z.date(),
 	cartId: z.string().nullable(),
 });
+
+export const incomingMessageSchema = z.object({
+	From: z.string(),
+	Body: z.string(),
+	MessageSid: z.string(),
+});

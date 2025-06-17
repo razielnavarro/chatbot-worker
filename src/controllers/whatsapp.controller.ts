@@ -1,11 +1,10 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
 import { Database } from '../db';
 import { conversations } from '../entities/conversations.entity';
 import { customers } from '../entities/customers.entity';
 import { eq } from 'drizzle-orm';
-import { conversationStateSchema } from '../schemas/conversations.schema';
+import { conversationStateSchema, incomingMessageSchema } from '../schemas/conversations.schema';
 import { createSession, getSessionByToken, updateSession } from './sessionController';
 
 type Variables = {
@@ -15,12 +14,6 @@ type Variables = {
 const whatsappController = new Hono<{ Variables: Variables }>();
 
 // Webhook for incoming WhatsApp messages
-const incomingMessageSchema = z.object({
-	From: z.string(),
-	Body: z.string(),
-	MessageSid: z.string(),
-});
-
 whatsappController.post('/webhook', zValidator('form', incomingMessageSchema), async (c) => {
 	const { From, Body, MessageSid } = c.req.valid('form');
 	const db = c.get('db');

@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
 import { orders, orderItems } from '../entities/orders.entity';
 import { eq } from 'drizzle-orm';
 import { Database } from '../db';
+import { createOrderSchema, updateOrderStatusSchema } from '../schemas/orders.schema';
 
 type Variables = {
 	db: Database;
@@ -12,26 +12,6 @@ type Variables = {
 const ordersController = new Hono<{ Variables: Variables }>();
 
 // Create order
-const createOrderSchema = z.object({
-	customerId: z.number(),
-	locationId: z.number(),
-	orderType: z.enum(['delivery', 'pickup']),
-	items: z.array(
-		z.object({
-			menuItemId: z.number(),
-			quantity: z.number().int().positive(),
-			notes: z.string().optional(),
-		})
-	),
-	deliveryAddress: z.string().optional(),
-	deliveryLatitude: z.number().optional(),
-	deliveryLongitude: z.number().optional(),
-	deliveryDetails: z.string().optional(),
-	deliveryFee: z.number().optional(),
-	subtotal: z.number().positive(),
-	total: z.number().positive(),
-});
-
 ordersController.post('/', zValidator('json', createOrderSchema), async (c) => {
 	const data = c.req.valid('json');
 	const db = c.get('db');
@@ -92,11 +72,7 @@ ordersController.get('/', async (c) => {
 });
 
 // Update order status
-const updateStatusSchema = z.object({
-	status: z.enum(['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled']),
-});
-
-ordersController.patch('/:id/status', zValidator('json', updateStatusSchema), async (c) => {
+ordersController.patch('/:id/status', zValidator('json', updateOrderStatusSchema), async (c) => {
 	const id = parseInt(c.req.param('id'));
 	const { status } = c.req.valid('json');
 	const db = c.get('db');

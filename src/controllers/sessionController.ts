@@ -1,5 +1,5 @@
 import { getDb } from '../db';
-import { sessions } from '../entities/sessions';
+import { sessions } from '../entities/sessions.entity';
 import { generateToken, generateExpiryTime } from '../utils/token';
 import { createSessionSchema, updateSessionSchema } from '../schemas/sessions.schema';
 import { eq } from 'drizzle-orm';
