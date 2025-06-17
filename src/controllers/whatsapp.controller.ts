@@ -55,6 +55,25 @@ whatsappController.post('/webhook', zValidator('form', incomingMessageSchema), a
 		conversation = newConversation;
 	}
 
+	// --- TIMER/EXPIRY LOGIC START ---
+	const TIMEOUT_MINUTES = 10;
+	const now = new Date();
+	if (conversation) {
+		const lastMessageAt = new Date(conversation.lastMessageAt);
+		const diffMinutes = (now.getTime() - lastMessageAt.getTime()) / (1000 * 60);
+		if (diffMinutes > TIMEOUT_MINUTES && conversation.state !== 'greeting') {
+			// Reset conversation state and temporary data
+			await db
+				.update(conversations)
+				.set({ state: 'greeting', temporaryData: null, lastMessageAt: now })
+				.where(eq(conversations.id, conversation.id));
+			return c.text(
+				'¡Recuerda que con un par de clicks puedes disfrutar de Luigi\'s Burger 🍔 !\n\n 🖊 Escribe "Hola" para empezar tu pedido'
+			);
+		}
+	}
+	// --- TIMER/EXPIRY LOGIC END ---
+
 	// Process message based on conversation state
 	const response = await processMessage(conversation.state, Body, db, phoneNumber, conversation.temporaryData || undefined);
 

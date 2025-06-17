@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
-import { getDb } from './db';
+import { getDb, createDb } from './db';
 import { ordersController } from './controllers/orders.controller';
 import { menuController } from './controllers/menu.controller';
 import { locationsController } from './controllers/locations.controller';
@@ -23,7 +23,7 @@ app.use('*', cors());
 
 // Database middleware
 app.use('*', async (c, next) => {
-	c.set('db', getDb(c.env.DB));
+	c.set('db', createDb(c.env.DB));
 	await next();
 });
 
