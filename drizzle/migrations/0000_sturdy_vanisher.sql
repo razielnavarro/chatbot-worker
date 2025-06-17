@@ -77,3 +77,16 @@ CREATE TABLE `conversations` (
 	`cart_id` text,
 	FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON UPDATE no action ON DELETE no action
 );
+--> statement-breakpoint
+CREATE TABLE `sessions` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`token` text NOT NULL,
+	`phone` text NOT NULL,
+	`state` text NOT NULL,
+	`order_id` integer,
+	`created_at` integer DEFAULT (cast((julianday('now') - 2440587.5)*86400000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast((julianday('now') - 2440587.5)*86400000 as integer)) NOT NULL,
+	`expires_at` integer NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `sessions_token_unique` ON `sessions` (`token`);

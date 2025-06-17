@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1748991357397,
-      "tag": "0000_damp_timeslip",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1748992161885,
-      "tag": "0001_loose_the_phantom",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1748992469204,
-      "tag": "0002_spooky_hydra",
+      "when": 1750190901623,
+      "tag": "0000_sturdy_vanisher",
       "breakpoints": true
     }
   ]

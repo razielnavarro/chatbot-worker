@@ -10,7 +10,8 @@
 		"cf-typegen": "wrangler types",
 		"db:generate": "drizzle-kit generate",
 		"db:up": "drizzle-kit up",
-		"db:migrate": "wrangler d1 migrations apply chatbot-d1"
+		"db:migrate": "wrangler d1 migrations apply chatbot-d1",
+		"db:migrate:remote": "wrangler d1 migrations apply chatbot-d1 --remote"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240208.0",
